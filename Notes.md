@@ -44,8 +44,24 @@
 ### TF 和 IDF
 
 - TF：Term Frequency，词频；
+
 - IDF：Inverse Document Frequency，逆文档词频。
+
 - `bind_tf_idf()` 用来计算 TF，IDF 以及 TF * IDF。
+
+  ```R
+  # 计算文献摘要的单词词频
+  bib %>%
+    select(SR,AB) %>%
+    as_tibble() %>%
+    unnest_tokens(word, AB) %>%
+    filter(!word %in% stop_words$word) %>%
+    count(SR, word) %>%
+    bind_tf_idf(term = word, document = SR, n) %>%
+    arrange(-tf_idf)
+  ```
+
+  
 
 ### 词组符号化
 
