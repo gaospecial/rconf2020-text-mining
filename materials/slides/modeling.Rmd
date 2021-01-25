@@ -603,6 +603,7 @@ class: right, middle
 ```{r}
 library(furrr)
 plan(multicore)
+plan(multisession)
 
 many_models <- tibble(K = c(3, 4, 6, 8, 10)) %>%        #<<
   mutate(topic_model = future_map(K, 

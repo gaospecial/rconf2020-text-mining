@@ -28,12 +28,32 @@ titles <- c("Twenty Thousand Leagues under the Sea",
             "Great Expectations")
 
 books <- gutenberg_works(title %in% titles) %>%
-  gutenberg_download(meta_fields = "title")
+  gutenberg_download(meta_fields = "title", 
+                     mirror = "https://www.gutenberg.org")
 ```
+
+> 古登堡计划（Project Gutenberg），由志愿者参与，致力于将文化作品的数字化和归档，
+并鼓励创作和发行电子书。该工程肇始于1971年，是最早的数字图书馆。
+其中的大部分书籍都是公有领域书籍的原本，谷登堡计划确保这些原本自由流通、
+自由文件格式，有利于长期保存，并可在各种计算机上阅读。
+截至2018年7月，谷登堡计划声称超过57,000件馆藏。
+
+`gutenbergr` 软件包包含了访问该项目的一些 R 语言工具。
+例如 `gutenberg_download()` 可以用来下载电子书。
+在使用过程中，发现需要设置 `mirror` 参数才可以成功（软件内的 `r gutenberg_get_mirror()` 可能已经失效）。
+
+```{r}
+books %>%
+  count(title)
+```
+
+
 
 What do you predict will happen if we run the following code?
 
 **PREDICT WITH YOUR NEIGHBOR BEFORE YOU RUN**
+
+电子书的每一行只有一句话或几个单词，下面的代码以书名 + 章节对每句话进行区分。
 
 ```{r}
 by_chapter <- books %>%
@@ -58,8 +78,8 @@ As a first step, let's tokenize and tidy these chapters.
 library(tidytext)
 
 word_counts <- by_chapter %>%
-  ___ %>%
-  anti_join(___) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(get_stopwords()) %>%
   count(document, word, sort = TRUE)
 
 word_counts
@@ -71,10 +91,10 @@ How many features and observations do you have?
 
 ```{r}
 words_sparse <- word_counts %>%
-  ___(document, word, n)
+  cast_sparse(document, word, n)
 
-___(words_sparse)
-___(words_sparse)
+class(words_sparse)
+dim(words_sparse)
 ```
 
 Train a topic model.
@@ -82,7 +102,7 @@ Train a topic model.
 ```{r}
 library(stm)
 
-topic_model <- stm(___, K = 4, 
+topic_model <- stm(words_sparse, K = 4, 
                    init.type = "Spectral")
 
 summary(topic_model)
@@ -93,9 +113,11 @@ summary(topic_model)
 The word-topic probabilities are called the "beta" matrix.
 
 ```{r}
-chapter_topics <- tidy(topic_model, ___)
+chapter_topics <- tidy(topic_model, matrix = "beta")
 
-chapter_topics
+# beta 的值保存在 topic_model$beta$logbeta[[1]] 中
+chapter_topics %>% mutate(log_beta = log(beta))
+topic_model$beta$logbeta[[1]][,1:5]
 ```
 
 What are the highest probability words in each topic?
@@ -104,34 +126,33 @@ What are the highest probability words in each topic?
 
 ```{r}
 top_terms <- chapter_topics %>%
+  group_by(topic) %>%
+  top_n(10, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
 
-ungroup() %>%
-
-group_by(topic) %>%
-
-arrange(topic, -beta)
-
-top_n(10, beta) %>%
 ```
 
 Let's build a visualization.
 
 ```{r}
 top_terms %>%
-  mutate(term = fct_reorder(term, beta)) %>%
-  ggplot(___) +
+  mutate(term = reorder_within(term, beta,topic)) %>%
+  ggplot(aes(term,beta,fill = factor(topic))) +
   geom_col(show.legend = FALSE) +
   facet_wrap(~ topic, scales = "free") +
-  coord_flip()
+  scale_x_reordered() +
+  coord_flip() +
+  labs(y=expression(beta))
 ```
 
 The document-topic probabilities are called "gamma".
 
 ```{r}
-chapters_gamma <- tidy(topic_model, ___,
+chapters_gamma <- tidy(topic_model, matrix = "gamma",
                        document_names = rownames(words_sparse))
 
-chapters_gamma
+glimpse(chapters_gamma)
 ```
 
 How well did we do in putting our books back together into the 4 topics?
@@ -142,10 +163,10 @@ What do you predict will happen if we run the following code?
 
 ```{r}
 chapters_parsed <- chapters_gamma %>%
-  ___(document, c("title", "chapter"), 
+  separate(document, c("title", "chapter"), 
            sep = "_", convert = TRUE)
 
-chapters_parsed
+glimpse(chapters_parsed)
 ```
 
 Let's visualize the results.
@@ -154,21 +175,17 @@ Let's visualize the results.
 
 ```{r}
 chapters_parsed %>%
-
-ggplot(aes(factor(topic), gamma)) +
-
-facet_wrap(~ title)
-
-mutate(title = fct_reorder(title, gamma * topic)) %>%
-
-geom_boxplot() +
+  mutate(title = fct_reorder(title, gamma * topic)) %>%
+  ggplot(aes(factor(topic), gamma)) +
+  geom_boxplot() +
+  facet_wrap(~ title, ncol = 2)
 ```
 
 Train many topic models to find the "right" value for K.
 
 ```{r}
-many_models <- tibble(___) %>%
-  mutate(topic_model = map(___, 
+many_models <- tibble(K = c(3,4,6,8,10)) %>%
+  mutate(topic_model = map(K, 
                                   ~stm(words_sparse, K = .,
                                        verbose = FALSE)))
 many_models
@@ -180,16 +197,14 @@ Evaluate metrics for these topic models. Lots to work through!
 heldout <- make.heldout(words_sparse)
 
 k_result <- many_models %>%
-  mutate(exclusivity        = map(topic_model, ___),
-         semantic_coherence = map(topic_model, ___, words_sparse),
+  mutate(exclusivity        = map(topic_model, exclusivity),
+         semantic_coherence = map(topic_model, semanticCoherence, words_sparse),
          eval_heldout       = map(topic_model, eval.heldout, heldout$missing),
-         residual           = map(topic_model, ___, words_sparse),
+         residual           = map(topic_model, checkResiduals, words_sparse),
          bound              = map_dbl(topic_model, function(x) max(x$convergence$bound)),
          lfact              = map_dbl(topic_model, function(x) lfactorial(x$settings$dim$K)),
          lbound             = bound + lfact,
-         iterations         = map_dbl(topic_model, ___)
-         
-k_result         
+         iterations         = map_dbl(topic_model, function(x) length(x$convergence$bound)))         
 ```
 
 How do model metrics change with K?
@@ -198,25 +213,30 @@ How do model metrics change with K?
 k_result %>%
   transmute(K,
             `Lower bound`         = lbound,
-            Residuals             = map_dbl(___),
-            `Semantic coherence`  = map_dbl(___),
-            `Held-out likelihood` = map_dbl(___)) %>%
+            Residuals             = map_dbl(residual, "dispersion"),
+            `Semantic coherence`  = map_dbl(semantic_coherence, mean),
+            `Held-out likelihood` = map_dbl(eval_heldout, "expected.heldout")) %>%
   gather(Metric, Value, -K) %>%
   ggplot(aes(K, Value, color = Metric)) +
-  geom_line() +
-  facet_wrap(~Metric, scales = "free_y")
+  geom_line(size = 1.5, alpha = 0.7, show.legend = FALSE) +
+  facet_wrap(~Metric, scales = "free_y") +
+  labs(x = "K (number of topics)",
+       y = NULL)
 ```
 
 What is the relationship between semantic coherence and exclusivity?
 
 ```{r}
 k_result %>%
-  select(___) %>%
-  filter(K %in% c(___)) %>%
+  select(K, exclusivity, semantic_coherence) %>%
+  filter(K %in% c(3, 6, 10)) %>%
   unnest(cols = c(exclusivity, semantic_coherence)) %>%
+  mutate(K = as.factor(K)) %>%
   ggplot(aes(semantic_coherence, exclusivity, 
-             color = factor(K))) +
-  geom_point()
+             color = K)) +
+  geom_point(size = 2, alpha = 0.7) +
+  labs(x = "Semantic coherence",
+       y = "Exclusivity")
 ```
 
 
