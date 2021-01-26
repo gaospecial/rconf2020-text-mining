@@ -280,7 +280,7 @@ library(rsample)
 
 books_split <- tidy_books %>%
   distinct(document) %>%
-  ___
+  initial_split()
 
 train_data <- training(books_split)
 test_data <- testing(books_split)
@@ -294,8 +294,8 @@ Next build:
 ```{r}
 sparse_words <- tidy_books %>%
   count(document, word, sort = TRUE) %>%
-  inner_join(___) %>%
-  ___
+  inner_join(train_data) %>%
+  cast_sparse(document, word, n)
 
 class(sparse_words)
 dim(sparse_words)
@@ -304,7 +304,7 @@ dim(sparse_words)
 ## Build a dataframe with the response variable
 
 ```{r}
-word_rownames <- as.integer(___)
+word_rownames <- as.integer(rownames(sparse_words))
 
 books_joined <- tibble(document = word_rownames) %>%
   left_join(books %>%
@@ -318,10 +318,13 @@ books_joined
 
 ```{r}
 library(glmnet)
+# library(doMC)            # 在 Unix 平台使用多个核心
+# registerDoMC(cores = 8)
 
 is_jane <- books_joined$title == "Pride and Prejudice"
-model <- cv.glmnet(___, ___, 
+model <- cv.glmnet(sparse_words, is_jane, 
                    family = "binomial", 
+                   parallel = TRUE,
                    keep = TRUE)
 ```
 
@@ -335,28 +338,23 @@ How does the glmnet model classify each document?
 library(broom)
 
 coefs <- model$glmnet.fit %>%
-  ___ %>%
+  tidy() %>%
   filter(lambda == model$lambda.1se)
 
 Intercept <- coefs %>%
   filter(term == "(Intercept)") %>%
-  ___
+  pull(estimate)
 ```
 
 **U N S C R A M B L E**
 
 ```{r}
 classifications <- tidy_books %>%
-
-mutate(probability = plogis(Intercept + score))
-
-inner_join(test_data) %>%
-
-group_by(document) %>%
-
-inner_join(coefs, by = c("word" = "term")) %>%
-
-summarize(score = sum(estimate)) %>%
+  inner_join(test_data) %>%
+  inner_join(coefs, by = c("word" = "term")) %>%
+  group_by(document) %>%
+  summarize(score = sum(estimate)) %>%
+  mutate(probability = plogis(Intercept + score))
 ```
 
 What are the coefficients? Which ones contribute the most?
@@ -365,20 +363,14 @@ What are the coefficients? Which ones contribute the most?
 
 ```{r}
 coefs %>%
-
-group_by(estimate > 0) %>%
-
-coord_flip()
-
-geom_col(show.legend = FALSE) +
-
-ungroup %>%
-
-top_n(10, abs(estimate)) %>%
-
-ggplot(aes(fct_reorder(term, estimate), 
-           estimate, 
-           fill = estimate > 0)) +
+  group_by(estimate > 0) %>%
+  top_n(10, abs(estimate)) %>%
+  ungroup %>%
+  ggplot(aes(fct_reorder(term, estimate), 
+             estimate, 
+             fill = estimate > 0)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip()
 ```
 
 What do you predict will happen if we run the following code?
@@ -387,7 +379,7 @@ What do you predict will happen if we run the following code?
 
 ```{r}
 comment_classes <- classifications %>%
-  ___(books %>%
+  left_join(books %>%
               select(title, document), by = "document") %>%
   mutate(title = as.factor(title))
 
@@ -400,7 +392,7 @@ Let's build an ROC ([receiver operating characteristic](https://en.wikipedia.org
 library(yardstick)
 
 comment_classes %>%
-  ___ %>%
+  roc_curve(title, probability) %>%
   ggplot(aes(x = 1 - specificity, y = sensitivity)) +
   geom_line(size = 1.5) +
   geom_abline(
@@ -414,7 +406,7 @@ What is the AUC?
 
 ```{r}
 comment_classes %>%
-  ___
+  roc_auc(title, probability)
 ```
 
 What about a confusion matrix?
@@ -428,18 +420,32 @@ comment_classes %>%
     ),
     prediction = as.factor(prediction)
   ) %>%
-  ___
+  conf_mat(title, prediction)
 ```
 
 Now let's talk about misclassifications.
 
 ```{r}
+## 分类器认为是但实际不是的句子（假阳性，FP）
 comment_classes %>%
   filter(
-    ___,
-    ___
+    probability > 0.9,
+    title == "The War of the Worlds"
   ) %>%
-  sample_n(10) %>%
+  sample_n(5) %>%
+  inner_join(books %>%
+               select(document, text)) %>%
+  select(probability, text)
+```
+
+```{r}
+# 分类器认为不是但是是的句子（假阴性，FN）
+comment_classes %>%
+  filter(
+    probability < 0.2,
+    title != "The War of the Worlds"
+  ) %>%
+  sample_n(5) %>%
   inner_join(books %>%
                select(document, text)) %>%
   select(probability, text)
