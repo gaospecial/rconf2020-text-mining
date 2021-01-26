@@ -1,6 +1,12 @@
 Text Mining with Tidy Data Principles Workshop
 ================
 
+《Text Mining with R》这本书是 R 语言文本数据挖掘的重要学习资料。在 rconf2020 上面的这个 workshop，作者对书中涉及的主要内容进行了讲解，不失为这本书的一个“精要速览”。
+
+![](./materials/slides/figs/tmwr_0601.png)
+
+我做的笔记在 [Notes.md](./Notes.md)
+
 ### rstudio::conf 2020
 
 by Julia Silge
