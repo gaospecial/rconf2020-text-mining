@@ -5,7 +5,7 @@ Text Mining with Tidy Data Principles Workshop
 
 ![](./materials/slides/figs/tmwr_0601.png)
 
-我做的笔记在 [Notes.md](./Notes.md)
+我做的笔记在 [Notes.md](./Notes.md)。
 
 ### rstudio::conf 2020
 
