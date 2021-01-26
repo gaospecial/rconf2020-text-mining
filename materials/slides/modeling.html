@@ -4,6 +4,7 @@
     <title>Text Modeling</title>
     <meta charset="utf-8" />
     <meta name="author" content="Julia Silge | rstudio::conf | 28 Jan 2020" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/5235085b15.js"></script>
     <link rel="stylesheet" href="css/xaringan-themer.css" type="text/css" />
@@ -236,7 +237,8 @@ library(tidyverse)
 library(gutenbergr)
 
 books &lt;- gutenberg_download(c(164, 36, 1342, 1400),
-                            meta_fields = "title")
+                            meta_fields = "title",
+                            mirror = "https://www.gutenberg.org/")
 
 books %&gt;%
   count(title)
@@ -247,7 +249,7 @@ books %&gt;%
 ##   title                                     n
 ##   &lt;chr&gt;                                 &lt;int&gt;
 ## 1 Great Expectations                    20024
-## 2 Pride and Prejudice                   13030
+## 2 Pride and Prejudice                   14203
 ## 3 The War of the Worlds                  6474
 ## 4 Twenty Thousand Leagues under the Sea 12135
 ```
@@ -293,11 +295,11 @@ glimpse(by_chapter)
 ```
 
 ```
-## Observations: 51,602
-## Variables: 3
-## $ gutenberg_id &lt;int&gt; 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, …
-## $ text         &lt;chr&gt; "CHAPTER ONE", "", "THE EVE OF THE WAR", "", "", "No one…
-## $ document     &lt;chr&gt; "The War of the Worlds_1", "The War of the Worlds_1", "T…
+## Rows: 38,578
+## Columns: 3
+## $ gutenberg_id &lt;int&gt; 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36...
+## $ text         &lt;chr&gt; "CHAPTER ONE", "", "THE EVE OF THE WAR", "", "", "No o...
+## $ document     &lt;chr&gt; "The War of the Worlds_1", "The War of the Worlds_1", ...
 ```
 
 ---
@@ -317,11 +319,11 @@ glimpse(word_counts)
 ```
 
 ```
-## Observations: 131,104
-## Variables: 3
-## $ document &lt;chr&gt; "Great Expectations_57", "Great Expectations_7", "Pride and …
-## $ word     &lt;chr&gt; "joe", "joe", "mr", "biddy", "joe", "estella", "joe", "said"…
-## $ n        &lt;int&gt; 88, 70, 66, 63, 58, 58, 56, 53, 53, 50, 50, 50, 50, 47, 46, …
+## Rows: 96,822
+## Columns: 3
+## $ document &lt;chr&gt; "Great Expectations_57", "Great Expectations_7", "Great Ex...
+## $ word     &lt;chr&gt; "joe", "joe", "biddy", "joe", "estella", "joe", "said", "p...
+## $ n        &lt;int&gt; 88, 70, 63, 58, 58, 56, 53, 53, 50, 50, 50, 50, 47, 46, 45...
 ```
 
 ---
@@ -359,7 +361,7 @@ dim(words_sparse)
 ```
 
 ```
-## [1]   193 18703
+## [1]   132 17048
 ```
 
 ---
@@ -399,30 +401,30 @@ summary(topic_model)
 ```
 
 ```
-## A topic model with 4 topics, 193 documents and a 18703 word dictionary.
+## A topic model with 4 topics, 132 documents and a 17048 word dictionary.
 ```
 
 ```
 ## Topic 1 Top Words:
-##  	 Highest Prob: captain, nautilus, sea, one, nemo, said, ned 
-##  	 FREX: nautilus, nemo, ned, conseil, canadian, ocean, submarine 
-##  	 Lift: deg, nautilus, ned, whale, vanikoro, savages, canadian 
-##  	 Score: nautilus, nemo, ned, conseil, canadian, ocean, deg 
+##  	 Highest Prob: captain, nautilus, one, sea, nemo, said, ned 
+##  	 FREX: nautilus, nemo, ned, conseil, canadian, submarine, aronnax 
+##  	 Lift: vanikoro, la, dillon, recherche, paradise, canoes, galleons 
+##  	 Score: nautilus, nemo, ned, conseil, captain, canadian, ocean 
 ## Topic 2 Top Words:
-##  	 Highest Prob: mr, elizabeth, said, mrs, darcy, much, must 
-##  	 FREX: elizabeth, darcy, bennet, jane, bingley, wickham, collins 
-##  	 Lift: lucas, jane, bennet, wickham, gardiner, lizzy, collins 
-##  	 Score: elizabeth, darcy, bennet, bingley, jane, wickham, mr 
+##  	 Highest Prob: joe, said, now, biddy, one, upon, miss 
+##  	 FREX: sergeant, joe, biddy, sister, pumblechook, joseph, orlick 
+##  	 Lift: sergeant, galley, rul, clem, hulks, arthur, william 
+##  	 Score: joe, biddy, pip, havisham, estella, pumblechook, mr 
 ## Topic 3 Top Words:
-##  	 Highest Prob: one, upon, said, people, martians, came, saw 
-##  	 FREX: martians, martian, woking, mars, curate, pine, ulla 
-##  	 Lift: seaward, ogilvy, revolver, whip, _thunder, child_, ironclads 
-##  	 Score: martians, martian, woking, cylinder, mars, curate, ulla 
+##  	 Highest Prob: said, mr, one, wemmick, herbert, know, now 
+##  	 FREX: guardian, jaggers's, skiffins, walworth, rum, wemmick, jaggers 
+##  	 Lift: jaggers's, jane, coiler, subordinate, look'ee, belinda, whimple 
+##  	 Score: mr, wemmick, herbert, jaggers, pip, havisham, estella 
 ## Topic 4 Top Words:
-##  	 Highest Prob: said, joe, mr, one, now, come, know 
-##  	 FREX: joe, pip, herbert, wemmick, havisham, estella, biddy 
-##  	 Lift: provis, jaggers's, clara, clem, magwitch, jolly, hulks 
-##  	 Score: joe, pip, havisham, herbert, estella, biddy, wemmick
+##  	 Highest Prob: one, upon, said, martians, people, came, towards 
+##  	 FREX: martians, martian, woking, mars, curate, pine, ulla 
+##  	 Lift: martians, mars, curate, shepperton, henderson, hood, seaward 
+##  	 Score: martians, martian, woking, cylinder, mars, curate, ulla
 ```
 
 
@@ -439,20 +441,20 @@ chapter_topics
 ```
 
 ```
-## # A tibble: 74,812 x 3
-##    topic term       beta
-##    &lt;int&gt; &lt;chr&gt;     &lt;dbl&gt;
-##  1     1 joe   2.62e-215
-##  2     2 joe   5.09e- 58
-##  3     3 joe   3.55e-110
-##  4     4 joe   8.91e-  3
-##  5     1 mr    1.50e-  4
-##  6     2 mr    1.44e-  2
-##  7     3 mr    3.41e-108
-##  8     4 mr    8.30e-  3
-##  9     1 biddy 4.63e-227
-## 10     2 biddy 3.71e- 52
-## # … with 74,802 more rows
+## # A tibble: 68,192 x 3
+##    topic term        beta
+##    &lt;int&gt; &lt;chr&gt;      &lt;dbl&gt;
+##  1     1 joe     2.09e-56
+##  2     2 joe     1.70e- 2
+##  3     3 joe     2.56e- 4
+##  4     4 joe     1.55e-50
+##  5     1 biddy   1.00e-58
+##  6     2 biddy   5.63e- 3
+##  7     3 biddy   6.42e- 5
+##  8     4 biddy   9.70e-53
+##  9     1 estella 1.20e-56
+## 10     2 estella 3.44e- 3
+## # ... with 68,182 more rows
 ```
 
 ---
@@ -504,17 +506,17 @@ top_terms
 ## # A tibble: 40 x 3
 ##    topic term        beta
 ##    &lt;int&gt; &lt;chr&gt;      &lt;dbl&gt;
-##  1     1 captain  0.0120 
+##  1     1 captain  0.0119 
 ##  2     1 nautilus 0.0101 
-##  3     1 sea      0.00688
-##  4     1 one      0.00684
+##  3     1 one      0.00684
+##  4     1 sea      0.00682
 ##  5     1 nemo     0.00674
-##  6     1 said     0.00631
+##  6     1 said     0.00635
 ##  7     1 ned      0.00622
-##  8     1 us       0.00585
+##  8     1 us       0.00578
 ##  9     1 conseil  0.00526
-## 10     1 land     0.00472
-## # … with 30 more rows
+## 10     1 land     0.00468
+## # ... with 30 more rows
 ```
 
 ---
@@ -547,20 +549,20 @@ chapters_gamma
 ```
 
 ```
-## # A tibble: 772 x 3
-##    document               topic     gamma
-##    &lt;chr&gt;                  &lt;int&gt;     &lt;dbl&gt;
-##  1 Great Expectations_57      1 0.000180 
-##  2 Great Expectations_7       1 0.000185 
-##  3 Pride and Prejudice_18     1 0.0000707
-##  4 Great Expectations_17      1 0.000239 
-##  5 Great Expectations_27      1 0.000223 
-##  6 Great Expectations_38      1 0.000255 
-##  7 Great Expectations_2       1 0.000160 
-##  8 Great Expectations_19      1 0.000139 
-##  9 Great Expectations_23      1 0.000312 
-## 10 Great Expectations_11      1 0.000136 
-## # … with 762 more rows
+## # A tibble: 528 x 3
+##    document              topic    gamma
+##    &lt;chr&gt;                 &lt;int&gt;    &lt;dbl&gt;
+##  1 Great Expectations_57     1 0.000115
+##  2 Great Expectations_7      1 0.000102
+##  3 Great Expectations_17     1 0.000149
+##  4 Great Expectations_27     1 0.000171
+##  5 Great Expectations_38     1 0.000133
+##  6 Great Expectations_2      1 0.000133
+##  7 Great Expectations_19     1 0.000155
+##  8 Great Expectations_23     1 0.000171
+##  9 Great Expectations_11     1 0.000160
+## 10 Great Expectations_15     1 0.000137
+## # ... with 518 more rows
 ```
 
 ---
@@ -594,12 +596,12 @@ glimpse(chapters_parsed)
 ```
 
 ```
-## Observations: 772
-## Variables: 4
-## $ title   &lt;chr&gt; "Great Expectations", "Great Expectations", "Pride and Prejud…
-## $ chapter &lt;int&gt; 57, 7, 18, 17, 27, 38, 2, 19, 23, 11, 15, 18, 16, 16, 22, 51,…
-## $ topic   &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
-## $ gamma   &lt;dbl&gt; 1.795307e-04, 1.850419e-04, 7.074997e-05, 2.393136e-04, 2.232…
+## Rows: 528
+## Columns: 4
+## $ title   &lt;chr&gt; "Great Expectations", "Great Expectations", "Great Expectat...
+## $ chapter &lt;int&gt; 57, 7, 17, 27, 38, 2, 19, 23, 11, 15, 18, 16, 22, 51, 9, 54...
+## $ topic   &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,...
+## $ gamma   &lt;dbl&gt; 0.0001145730, 0.0001018362, 0.0001487511, 0.0001713696, 0.0...
 ```
 
 ---
@@ -716,7 +718,8 @@ class: right, middle
 
 ```r
 library(furrr)
-plan(multicore)
+# plan(multicore)
+# plan(multisession)
 
 *many_models &lt;- tibble(K = c(3, 4, 6, 8, 10)) %&gt;%
   mutate(topic_model = future_map(K, 
@@ -767,14 +770,14 @@ k_result
 
 ```
 ## # A tibble: 5 x 10
-##       K topic_model exclusivity semantic_cohere… eval_heldout residual   bound
+##       K topic_model exclusivity semantic_cohere~ eval_heldout residual   bound
 ##   &lt;dbl&gt; &lt;list&gt;      &lt;list&gt;      &lt;list&gt;           &lt;list&gt;       &lt;list&gt;     &lt;dbl&gt;
-## 1     3 &lt;STM&gt;       &lt;dbl [3]&gt;   &lt;dbl [3]&gt;        &lt;named list… &lt;named … -1.73e6
-## 2     4 &lt;STM&gt;       &lt;dbl [4]&gt;   &lt;dbl [4]&gt;        &lt;named list… &lt;named … -1.70e6
-## 3     6 &lt;STM&gt;       &lt;dbl [6]&gt;   &lt;dbl [6]&gt;        &lt;named list… &lt;named … -1.69e6
-## 4     8 &lt;STM&gt;       &lt;dbl [8]&gt;   &lt;dbl [8]&gt;        &lt;named list… &lt;named … -1.67e6
-## 5    10 &lt;STM&gt;       &lt;dbl [10]&gt;  &lt;dbl [10]&gt;       &lt;named list… &lt;named … -1.66e6
-## # … with 3 more variables: lfact &lt;dbl&gt;, lbound &lt;dbl&gt;, iterations &lt;dbl&gt;
+## 1     3 &lt;STM&gt;       &lt;dbl [3]&gt;   &lt;dbl [3]&gt;        &lt;named list~ &lt;named ~ -1.29e6
+## 2     4 &lt;STM&gt;       &lt;dbl [4]&gt;   &lt;dbl [4]&gt;        &lt;named list~ &lt;named ~ -1.28e6
+## 3     6 &lt;STM&gt;       &lt;dbl [6]&gt;   &lt;dbl [6]&gt;        &lt;named list~ &lt;named ~ -1.26e6
+## 4     8 &lt;STM&gt;       &lt;dbl [8]&gt;   &lt;dbl [8]&gt;        &lt;named list~ &lt;named ~ -1.25e6
+## 5    10 &lt;STM&gt;       &lt;dbl [10]&gt;  &lt;dbl [10]&gt;       &lt;named list~ &lt;named ~ -1.24e6
+## # ... with 3 more variables: lfact &lt;dbl&gt;, lbound &lt;dbl&gt;, iterations &lt;dbl&gt;
 ```
 
 ---
@@ -807,7 +810,7 @@ k_result %&gt;%
 
 --
 
-- .large[Correlates well with human judgment of topic quality 😄]
+- .large[Correlates well with human judgment of topic quality 😃]
 
 --
 
@@ -872,19 +875,20 @@ titles &lt;- c("The War of the Worlds",
             "Pride and Prejudice")
 
 books &lt;- gutenberg_works(title %in% titles) %&gt;%
-  gutenberg_download(meta_fields = "title") %&gt;%
+  gutenberg_download(meta_fields = "title", 
+                     mirror = "https://www.gutenberg.org/") %&gt;%
   mutate(document = row_number())
 
 glimpse(books)
 ```
 
 ```
-## Observations: 19,504
-## Variables: 4
-## $ gutenberg_id &lt;int&gt; 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, …
-## $ text         &lt;chr&gt; "The War of the Worlds", "", "by H. G. Wells [1898]", ""…
-## $ title        &lt;chr&gt; "The War of the Worlds", "The War of the Worlds", "The W…
-## $ document     &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 1…
+## Rows: 20,677
+## Columns: 4
+## $ gutenberg_id &lt;int&gt; 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36...
+## $ text         &lt;chr&gt; "The War of the Worlds", "", "by H. G. Wells [1898]", ...
+## $ title        &lt;chr&gt; "The War of the Worlds", "The War of the Worlds", "The...
+## $ document     &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,...
 ```
 
 ---
@@ -907,12 +911,12 @@ glimpse(tidy_books)
 ```
 
 ```
-## Observations: 159,707
-## Variables: 4
-## $ gutenberg_id &lt;int&gt; 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, …
-## $ title        &lt;chr&gt; "The War of the Worlds", "The War of the Worlds", "The W…
-## $ document     &lt;int&gt; 1, 1, 1, 1, 3, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7,…
-## $ word         &lt;chr&gt; "the", "war", "of", "the", "by", "but", "who", "shall", …
+## Rows: 159,742
+## Columns: 4
+## $ gutenberg_id &lt;int&gt; 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36...
+## $ title        &lt;chr&gt; "The War of the Worlds", "The War of the Worlds", "The...
+## $ document     &lt;int&gt; 1, 1, 1, 1, 3, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, ...
+## $ word         &lt;chr&gt; "the", "war", "of", "the", "by", "but", "who", "shall"...
 ```
 
 ---
@@ -959,7 +963,7 @@ dim(sparse_words)
 ```
 
 ```
-## [1] 12039  1652
+## [1] 12881  1654
 ```
 
 ---
@@ -970,8 +974,8 @@ dim(sparse_words)
 
 .large[Which `dim` of the sparse matrix is the number of features?]
 
-- .large[12039]
-- .large[1652]
+- .large[12881]
+- .large[1654]
 
 .large[Feature = term = word]
 
@@ -1003,10 +1007,10 @@ glimpse(books_joined)
 ```
 
 ```
-## Observations: 12,039
-## Variables: 2
-## $ document &lt;int&gt; 4532, 6450, 15669, 308, 1264, 1287, 1698, 1897, 2135, 2161, …
-## $ title    &lt;chr&gt; "The War of the Worlds", "The War of the Worlds", "Pride and…
+## Rows: 12,881
+## Columns: 2
+## $ document &lt;int&gt; 6450, 1264, 1287, 1639, 1698, 1897, 2135, 2161, 2858, 2930...
+## $ title    &lt;chr&gt; "The War of the Worlds", "The War of the Worlds", "The War...
 ```
 
 
@@ -1017,14 +1021,14 @@ glimpse(books_joined)
 
 ```r
 library(glmnet)
-library(doMC)
-registerDoMC(cores = 8)
+# library(doMC)
+# registerDoMC(cores = 8)
 
 is_jane &lt;- books_joined$title == "Pride and Prejudice"
 
 model &lt;- cv.glmnet(sparse_words, is_jane, 
                    family = "binomial", 
-                   parallel = TRUE, 
+                   # parallel = TRUE, 
                    keep = TRUE)
 ```
 
@@ -1094,11 +1098,11 @@ glimpse(classifications)
 ```
 
 ```
-## Observations: 3,992
-## Variables: 3
-## $ document    &lt;int&gt; 1, 6, 7, 28, 29, 33, 34, 37, 45, 50, 51, 52, 53, 55, 60, …
-## $ score       &lt;dbl&gt; -2.2303223, 2.0101769, -1.1689632, -1.7574498, -2.2689393…
-## $ probability &lt;dbl&gt; 0.122328656, 0.906356553, 0.287163207, 0.182770543, 0.118…
+## Rows: 4,264
+## Columns: 3
+## $ document    &lt;int&gt; 1, 13, 15, 19, 25, 32, 36, 37, 48, 50, 51, 55, 56, 63, ...
+## $ score       &lt;dbl&gt; -2.7327390, -0.3613760, -5.5202942, 0.3911530, -1.46135...
+## $ probability &lt;dbl&gt; 0.1225755040, 0.5994320575, 0.0085281431, 0.7605374508,...
 ```
 
 ---
@@ -1186,12 +1190,12 @@ glimpse(comment_classes)
 ```
 
 ```
-## Observations: 3,992
-## Variables: 4
-## $ document    &lt;int&gt; 1, 6, 7, 28, 29, 33, 34, 37, 45, 50, 51, 52, 53, 55, 60, …
-## $ score       &lt;dbl&gt; -2.2303223, 2.0101769, -1.1689632, -1.7574498, -2.2689393…
-## $ probability &lt;dbl&gt; 0.122328656, 0.906356553, 0.287163207, 0.182770543, 0.118…
-## $ title       &lt;fct&gt; The War of the Worlds, The War of the Worlds, The War of …
+## Rows: 4,264
+## Columns: 4
+## $ document    &lt;int&gt; 1, 13, 15, 19, 25, 32, 36, 37, 48, 50, 51, 55, 56, 63, ...
+## $ score       &lt;dbl&gt; -2.7327390, -0.3613760, -5.5202942, 0.3911530, -1.46135...
+## $ probability &lt;dbl&gt; 0.1225755040, 0.5994320575, 0.0085281431, 0.7605374508,...
+## $ title       &lt;fct&gt; The War of the Worlds, The War of the Worlds, The War o...
 ```
 
 ---
@@ -1231,7 +1235,7 @@ comment_classes %&gt;%
 ## # A tibble: 1 x 3
 ##   .metric .estimator .estimate
 ##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
-## 1 roc_auc binary         0.973
+## 1 roc_auc binary         0.970
 ```
 
 ---
@@ -1265,8 +1269,8 @@ comment_classes %&gt;%
 ```
 ##                        Truth
 ## Prediction              Pride and Prejudice The War of the Worlds
-##   Pride and Prejudice                  2511                   182
-##   The War of the Worlds                 141                  1158
+##   Pride and Prejudice                  2799                   211
+##   The War of the Worlds                 142                  1112
 ```
 
 ---
@@ -1289,11 +1293,11 @@ comment_classes %&gt;%
 ## # A tibble: 5 x 2
 ##   probability text                                                              
 ##         &lt;dbl&gt; &lt;chr&gt;                                                             
-## 1       0.803 torrent of half-sane and always frothy repentance for his vacant …
-## 2       0.903 ladies there being by no means the least active.                  
-## 3       0.862 and all that is necessary for the support of animated existence.  
-## 4       0.968 evening paper, after wiring for authentication from him and recei…
-## 5       0.991 turned hastily to his own room, put all his available money--some…
+## 1       0.882 wheels flung behind her, she receded with terrifying slowness from
+## 2       0.966 to Brigadier-General Marvin, and tell him all you know.  He's at  
+## 3       0.823 excavating and embanking in a methodical and discriminating manne~
+## 4       0.820 CHAPTER FOURTEEN                                                  
+## 5       0.932 It must be, if the nebular hypothesis has any truth, older than o~
 ```
 
 ---
@@ -1316,11 +1320,11 @@ comment_classes %&gt;%
 ## # A tibble: 5 x 2
 ##   probability text                                                              
 ##         &lt;dbl&gt; &lt;chr&gt;                                                             
-## 1      0.157  "\"I know them a little. Their brother is a pleasant gentlemanlik…
-## 2      0.239  "man about them, that he advanced but little. Whilst wandering on…
-## 3      0.0312 "foxhounds, and drink a bottle of wine a day.\""                  
-## 4      0.214  "At five o'clock the two ladies retired to dress, and at half-pas…
-## 5      0.175  "into his own hands."
+## 1      0.296  "      “May I ask to what these questions tend?”"                 
+## 2      0.0315 "      the road, the house standing in it, the green pales, and t~
+## 3      0.105  "      the design of selecting a wife, as I certainly did.”"      
+## 4      0.0311 "      They descended the hill, crossed the bridge, and drove to ~
+## 5      0.147  "      walking together in the shrubbery behind the house, they s~
 ```
 
 ---
@@ -1364,6 +1368,7 @@ class: middle, center
 # Submit feedback before you leave
 
 .large[[rstd.io/ws-survey](https://rstd.io/ws-survey)]
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
@@ -1412,6 +1417,32 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
     deleted = true;
   });
 })();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
 // adds .remark-code-has-line-highlighted class to <pre> parent elements
 // of code chunks containing highlighted lines with class .remark-code-line-highlighted
 (function(d) {
@@ -1429,17 +1460,6 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   }
   preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
 })(document);</script>
-
-<script>
-(function() {
-  var links = document.getElementsByTagName('a');
-  for (var i = 0; i < links.length; i++) {
-    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
-      links[i].target = '_blank';
-    }
-  }
-})();
-</script>
 
 <script>
 slideshow._releaseMath = function(el) {

@@ -22,8 +22,8 @@ options(htmltools.dir.version = FALSE,
 library(knitr)
 knitr::opts_chunk$set(cache = TRUE, warning = FALSE, message = FALSE, dpi = 300)
 library(ggplot2)
-library(silgelib)
-theme_set(theme_roboto())
+# library(silgelib)  ## 这个包提供了作者使用的自定义主题函数 theme_roboto()
+theme_set(theme_bw())
 ```
 
 layout: true
@@ -245,7 +245,8 @@ library(tidyverse)
 library(gutenbergr)
 
 books <- gutenberg_download(c(164, 36, 1342, 1400),
-                            meta_fields = "title")
+                            meta_fields = "title",
+                            mirror = "https://www.gutenberg.org/")
 
 books %>%
   count(title)
@@ -602,8 +603,8 @@ class: right, middle
 
 ```{r}
 library(furrr)
-plan(multicore)
-plan(multisession)
+# plan(multicore)
+# plan(multisession)
 
 many_models <- tibble(K = c(3, 4, 6, 8, 10)) %>%        #<<
   mutate(topic_model = future_map(K, 
@@ -755,7 +756,8 @@ titles <- c("The War of the Worlds",
             "Pride and Prejudice")
 
 books <- gutenberg_works(title %in% titles) %>%
-  gutenberg_download(meta_fields = "title") %>%
+  gutenberg_download(meta_fields = "title", 
+                     mirror = "https://www.gutenberg.org/") %>%
   mutate(document = row_number())
 
 glimpse(books)
@@ -858,14 +860,14 @@ glimpse(books_joined)
 
 ```{r}
 library(glmnet)
-library(doMC)
-registerDoMC(cores = 8)
+# library(doMC)
+# registerDoMC(cores = 8)
 
 is_jane <- books_joined$title == "Pride and Prejudice"
 
 model <- cv.glmnet(sparse_words, is_jane, 
                    family = "binomial", 
-                   parallel = TRUE, 
+                   # parallel = TRUE, 
                    keep = TRUE)
 
 ```
